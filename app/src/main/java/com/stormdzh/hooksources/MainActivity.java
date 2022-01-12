@@ -4,8 +4,11 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -20,6 +23,9 @@ import android.view.View;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.stormdzh.hooksources.hook.HookUtil;
+
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
@@ -27,6 +33,8 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.List;
+
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -38,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE, Manifest.permission.INTERNET}, 200);
+            requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE, Manifest.permission.INTERNET, ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION}, 200);
         }
 
         findViewById(R.id.tvAndroidId).setOnClickListener(this);
@@ -53,6 +61,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.tvIMSI).setOnClickListener(this);
         findViewById(R.id.tvRecentTasks).setOnClickListener(this);
         findViewById(R.id.tvRuningTasks).setOnClickListener(this);
+        findViewById(R.id.tvClipboard).setOnClickListener(this);
+        findViewById(R.id.tvLocation).setOnClickListener(this);
+        findViewById(R.id.tvSERIAL).setOnClickListener(this);
+
+        try {
+//            HookUtil.hookClipboardService(this);
+            TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
+            String networkOperatorName = tm.getNetworkOperatorName();
+            Log.i(TAG,"networkOperatorName:"+networkOperatorName);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -96,8 +116,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.tvRuningTasks:
                 getRuningTasks();
                 break;
+            case R.id.tvClipboard:
+                getClipboard(this);
+                break;
+            case R.id.tvLocation:
+                getLocation(this);
+                break;
+            case R.id.tvSERIAL:
+//                String user = Build.USER;
+//                String serial = Build.SERIAL;
+                String serial = Build.SERIAL;
+                String release = Build.VERSION.RELEASE;
+                String serial1 = Build.MANUFACTURER;
+                Log.i("codedzh",serial);
+                break;
         }
 
+    }
+
+    @SuppressLint("MissingPermission")
+    private void getLocation(MainActivity mainActivity) {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);;
+        locationManager.getLastKnownLocation(ACCESS_COARSE_LOCATION);
+    }
+
+    private String getClipboard( Context context) {
+        ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        if (cm != null) {
+            ClipData data = cm.getPrimaryClip();
+            if (data != null) {
+                ClipData.Item item = data.getItemAt(0);
+                if (item != null) {
+                    //TODO item.getText()部分手机可能会在剪切板没有相关的文本内容返回null
+                    return item.getText().toString();
+                }
+            }
+        }
+        return "";
     }
 
     public String getAndroidId2(Context context) {
