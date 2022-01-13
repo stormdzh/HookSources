@@ -7,6 +7,7 @@ import android.app.ActivityManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.net.wifi.WifiInfo;
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.tvClipboard).setOnClickListener(this);
         findViewById(R.id.tvLocation).setOnClickListener(this);
         findViewById(R.id.tvSERIAL).setOnClickListener(this);
+        findViewById(R.id.tvPrivacyInfo).setOnClickListener(this);
 
         try {
 //            HookUtil.hookClipboardService(this);
@@ -129,6 +131,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String release = Build.VERSION.RELEASE;
                 String serial1 = Build.MANUFACTURER;
                 Log.i("codedzh",serial);
+                break;
+            case R.id.tvPrivacyInfo:
+                startActivity(new Intent(this,PrivacyInfoActivity.class));
                 break;
         }
 
